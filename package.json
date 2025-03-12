@@ -1,16 +1,22 @@
 {
-    "name": "node-js-getting-started",
+    "name": "js-getting-started",
     "scripts": {
         "start": "node server.js"
     },
     "dependencies": {
-        "leancloud-storage": "^3.11.0",
-        "leanengine": "^3.3.2"
+        "express": "^4.21.2",
+        "leancloud-storage": "^3.15.0",
+        "leanengine": "^3.8.0"
     },
     "devDependencies": {
         "nodemon": "^1.18.7"
     },
     "engines": {
         "node": "20.X"
-    }
+    },
+    "version": "1.0.0",
+    "main": "server.js",
+    "author": "",
+    "license": "ISC",
+    "description": ""
 }
