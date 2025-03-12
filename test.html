@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <title>批量二维码识别工具</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+
+        .upload-box {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #results {
+            margin-top: 20px;
+        }
+
+        .result-item {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .thumbnail {
+            max-width: 100px;
+            margin-right: 20px;
+        }
+
+        #loading {
+            display: none;
+            color: #666;
+            margin: 10px 0;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="upload-box">
+        <h2>批量二维码识别工具</h2>
+        <input type="file" id="fileInput" accept="image/*" multiple>
+        <p>或拖放图片到此区域</p>
+        <div id="loading">正在处理中，请稍候...</div>
+    </div>
+    <div id="results"></div>
+
+    <script src="./jsQR.js"></script>
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const resultsDiv = document.getElementById('results');
+        const loadingDiv = document.getElementById('loading');
+
+        async function processImage(file) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                const reader = new FileReader();
+
+                reader.onload = (e) => {
+                    img.onload = async () => {
+                        // 创建canvas处理图像
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        ctx.drawImage(img, 0, 0);
+
+                        // 获取图像数据
+                        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+                        // 使用jsQR解码
+                        const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+                        resolve({
+                            file,
+                            imgSrc: e.target.result,
+                            result: code ? code.data : '未检测到二维码'
+                        });
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function tiqu(str) {
+            // https://h5.igame.qq.com/pmd-mobile.merchant.igame-vas.igame-issue/index?code=bizGiftCode.4FKVCSQXX&brandid=b1683614611&configid=iXWyhNTSpzN
+            var reg = /code=bizGiftCode.(\w+)/;
+            var result = str.match(reg);
+            return "bizGiftCode." + result[1];
+
+        }
+
+
+        function Handle(file) {
+            return new Promise((resolve) => {
+                processImage(file).then(({ file, imgSrc, result }) => {
+                    const Code = result == "未检测到二维码" ? "未检测到二维码" : tiqu(result)
+                    fetch("/post?code=" + Code).then(res => res.json()).then(data => {
+                        console.log(data)
+                        resolve({
+                            file,
+                            msg: data.msg,
+                            Code,
+                            imgSrc,
+                            result
+                        });
+                    }).catch((err) => {
+                        console.log(err)
+                        resolve({
+                            file,
+                            Code,
+                            imgSrc,
+                            result
+                        });
+                    })
+
+                });
+
+            })
+        }
+        async function handleFiles(files) {
+            resultsDiv.innerHTML = '';
+            loadingDiv.style.display = 'block';
+
+            try {
+                const results = await Promise.all(
+                    [...files].map(file => Handle(file))
+                );
+
+                results.forEach(async ({ file, imgSrc, result, Code, msg }) => {
+                    const div = document.createElement('div');
+                    const code = result == "未检测到二维码" ? "未检测到二维码" : tiqu(result)
+                    div.className = 'result-item';
+                    div.innerHTML = `
+                        <img class="thumbnail" src="${imgSrc}">
+                        <div>
+                            <p><strong>邀请码：</strong>${Code}</p>
+                            <p><strong>领取结果：</strong>${msg}</p>
+                        </div>
+                    `;
+                    resultsDiv.appendChild(div);
+                });
+            } catch (error) {
+                alert('处理出错: ' + error.message);
+            }
+
+            loadingDiv.style.display = 'none';
+        }
+
+        // 文件选择处理
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        // 拖放处理
+        document.addEventListener('dragover', (e) => {
+            e.preventDefault();
+        });
+
+        document.addEventListener('drop', (e) => {
+            e.preventDefault();
+            handleFiles(e.dataTransfer.files);
+        });
+    </script>
+</body>
+
+</html>
