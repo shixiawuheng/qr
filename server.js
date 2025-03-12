@@ -2,7 +2,7 @@
 const fs = require("fs");
 const path = require("path");
 const http = require("http");
-const port = 17630;
+const port = 52759;
 var httpServer = http.createServer(processRequest);
 function getContentType(filePath) {
   const extname = path.extname(filePath).toLowerCase();
