@@ -12,6 +12,13 @@ AV.init({
 
 var app = express();
 app.use(AV.express());
+// express 设置静态目录
+app.use(express.static(path.join(__dirname, "public")));
+app.post("/post", function (req, res) {
+  res.writeHead(200, { "content-type": "application/json" });
+
+});
+
 app.listen(process.env.LEANCLOUD_APP_PORT);
 // const port = process.env.LEANCLOUD_APP_PORT;
 // var httpServer = http.createServer(processRequest);
