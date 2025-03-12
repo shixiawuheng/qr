@@ -2,7 +2,7 @@
 const fs = require("fs");
 const path = require("path");
 const http = require("http");
-const port = 52759;
+const port = process.env.LEANCLOUD_APP_PORT;
 var httpServer = http.createServer(processRequest);
 function getContentType(filePath) {
   const extname = path.extname(filePath).toLowerCase();
