@@ -1,8 +1,7 @@
 {
     "name": "node-js-getting-started",
     "scripts": {
-        "start": "node server.js",
-        "dev": "nodemon server.js -- "
+        "start": "node server.js"
     },
     "dependencies": {
         "leancloud-storage": "^3.11.0",
